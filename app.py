@@ -7,6 +7,7 @@ appends to the ingress service's env_file. Nothing is hardcoded here.
 
 import os
 import socket
+from urllib.parse import urlparse
 
 import psycopg2
 import redis
@@ -43,7 +44,10 @@ def index() -> str:
     redis_status = "unset"
     if REDIS_URL:
         try:
-            hits = redis.from_url(REDIS_URL).incr("hello:hits")
+            # nuk's per-app ACL user is limited to keys `~<app>:*`, and the URL user
+            # IS that app name, so scope the key to the same prefix.
+            user = urlparse(REDIS_URL).username or "app"
+            hits = redis.from_url(REDIS_URL).incr(f"{user}:hits")
             redis_status = f"ok (hits={hits})"
         except Exception as exc:  # noqa: BLE001
             redis_status = f"error: {exc}"
