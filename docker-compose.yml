@@ -1,0 +1,11 @@
+# JonesH/hello - build-only single service.
+#
+# nuk runs `docker compose -p hello -f repo/docker-compose.yml up -d`, which builds
+# this image on first apply. The shared DATABASE_URL / REDIS_URL arrive via the
+# per-app creds env-file that nuk appends to the ingress service (`web`) through its
+# generated compose.override.yml - never hardcode them here, `environment:` would
+# win over nuk's env_file.
+services:
+  web:
+    build: .
+    restart: unless-stopped
